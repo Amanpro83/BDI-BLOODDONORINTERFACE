@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BDI — Blood Donor Interface (Dashboard)</title>
+  <link href="style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-left"><a class="brand" href="index.html">BDI</a></div>
+    <div class="nav-right">
+      <a href="donors.html">Donors</a>
+      <a href="recipients.html">Recipients</a>
+      <a href="bloodbanks.html">Blood Banks</a>
+      <a href="#" id="resetData">Reset Data</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <h1>BDI — Blood Donor Interface</h1>
+      <p class="lead">Visibility of blood availability across multiple banks. Manage donors, requests and inventories.</p>
+    </div>
+    <div class="hero-actions">
+      <button id="addSample" class="btn">Add Sample Data</button>
+      <div class="dropdown">
+        <button id="exportBtn" class="btn ghost">Export</button>
+        <div class="dropdown-content">
+          <a id="exportJSON">Export JSON</a>
+          <a id="importJSON">Import JSON</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card stats">
+      <div class="stat">
+        <div class="stat-num" id="totalDonors">0</div>
+        <div class="stat-label">Donors</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="totalRequests">0</div>
+        <div class="stat-label">Open Requests</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="totalBanks">0</div>
+        <div class="stat-label">Blood Banks</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="totalUnits">0</div>
+        <div class="stat-label">Total Units (All Banks)</div>
+      </div>
+    </section>
+
+    <section class="card chart-card">
+      <h3>Aggregated Availability — Units by Group (All Banks)</h3>
+      <canvas id="availabilityChart" aria-label="Blood availability chart" role="img"></canvas>
+      <div class="chart-legend" id="chartLegend"></div>
+    </section>
+
+    <section class="card list-card">
+      <h3>Recent Requests</h3>
+      <div id="recentList">No requests yet.</div>
+    </section>
+  </main>
+
+  <input type="file" id="fileInput" style="display:none" accept="application/json" />
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById('addSample').addEventListener('click', ()=>{ window.bdi.addSampleData(); window.bdi.renderAll(); });
+    document.getElementById('exportJSON').addEventListener('click', ()=>{ window.bdi.exportData(); });
+    document.getElementById('importJSON').addEventListener('click', ()=>{ document.getElementById('fileInput').click(); });
+    document.getElementById('fileInput').addEventListener('change', (e)=>{
+      const f = e.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{ try{ const data = JSON.parse(reader.result); window.bdi.importData(data); alert('Imported'); window.bdi.renderAll(); }catch(err){ alert('Invalid JSON'); } };
+      reader.readAsText(f);
+    });
+    document.getElementById('resetData').addEventListener('click', ()=>{ if(confirm('Reset all data?')){ window.bdi.resetData(); window.bdi.renderAll(); alert('Reset done'); } });
+    window.addEventListener('load', ()=>{ window.bdi.renderAll(); });
+  </script>
+</body>
+</html>

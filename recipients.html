@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BDI — Recipients</title>
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-left"><a class="brand" href="index.html">BDI</a></div>
+    <div class="nav-right">
+      <a href="donors.html">Donors</a>
+      <a href="recipients.html" class="active">Recipients</a>
+      <a href="bloodbanks.html">Blood Banks</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="card">
+      <h2>Request Blood (Recipient)</h2>
+      <div class="form-grid">
+        <input id="r_name" placeholder="Patient / Requester name" />
+        <select id="r_blood">
+          <option value="">Select blood group</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+        </select>
+        <input id="r_units" type="number" value="1" min="1" />
+        <input id="r_phone" placeholder="Contact phone" />
+        <input id="r_city" placeholder="City" />
+        <textarea id="r_notes" placeholder="Notes (hospital, urgency, etc)"></textarea>
+        <div style="grid-column:1 / -1;display:flex;gap:8px;align-items:center">
+          <select id="fulfill_bank"><option value="">Fulfill from bank (optional)</option></select>
+          <button id="r_add" class="btn primary">Submit Request</button>
+        </div>
+      </div>
+      <div id="r_status" class="small-muted"></div>
+    </section>
+
+    <section class="card">
+      <h2>Search & Manage Requests</h2>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="q" placeholder="Search by blood group or city" />
+        <button id="q_btn" class="btn">Search</button>
+        <button id="q_all" class="btn ghost">Show All</button>
+      </div>
+      <div id="requestList">No requests yet.</div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    function refreshBanksInFulfill(){ const sel = document.getElementById('fulfill_bank'); sel.innerHTML = '<option value="">Fulfill from bank (optional)</option>'; (window.bdi.getBanks()||[]).forEach(b=>{ const opt = document.createElement('option'); opt.value=b.id; opt.textContent = b.name + ' — ' + (b.city||''); sel.appendChild(opt); }); }
+    document.getElementById('r_add').addEventListener('click', ()=>{
+      const req = {
+        name: document.getElementById('r_name').value.trim(),
+        bloodGroup: document.getElementById('r_blood').value.trim(),
+        units: parseInt(document.getElementById('r_units').value,10)||1,
+        phone: document.getElementById('r_phone').value.trim(),
+        city: document.getElementById('r_city').value.trim(),
+        notes: document.getElementById('r_notes').value.trim(),
+        status: 'open'
+      };
+      const bankToUse = document.getElementById('fulfill_bank').value;
+      if(bankToUse){ const res = window.bdi.fulfillRequestFromBank(bankToUse, req.bloodGroup, req.units); if(!res.ok){ document.getElementById('r_status').textContent = res.msg; return; } }
+      const res = window.bdi.addRequest(req);
+      document.getElementById('r_status').textContent = res.msg;
+      if(res.ok){ document.getElementById('r_name').value=''; document.getElementById('r_phone').value=''; document.getElementById('r_city').value=''; document.getElementById('r_notes').value=''; document.getElementById('r_units').value='1'; }
+      window.bdi.renderAll();
+    });
+
+    document.getElementById('q_btn').addEventListener('click', ()=>{ window.bdi.renderRequests(document.getElementById('q').value.trim()); });
+    document.getElementById('q_all').addEventListener('click', ()=>{ document.getElementById('q').value=''; window.bdi.renderRequests(); });
+    window.addEventListener('load', ()=>{ refreshBanksInFulfill(); window.bdi.renderRequests(); });
+  </script>
+</body>
+</html>
