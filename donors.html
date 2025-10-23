@@ -1,75 +1,38 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BDI — Donors</title>
-  <link href="style.css" rel="stylesheet">
-</head>
-<body>
-  <nav class="nav">
-    <div class="nav-left"><a class="brand" href="index.html">BDI</a></div>
-    <div class="nav-right">
-      <a href="donors.html" class="active">Donors</a>
-      <a href="recipients.html">Recipients</a>
-      <a href="bloodbanks.html">Blood Banks</a>
-    </div>
-  </nav>
-
-  <main class="container">
-    <section class="card">
-      <h2>Register Donor</h2>
-      <div class="form-grid">
-        <input id="d_name" placeholder="Full name" />
-        <select id="d_blood">
-          <option value="">Select blood group</option>
-          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-          <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
-        </select>
-        <input id="d_phone" placeholder="Phone (e.g. +91XXXXXXXXXX)" />
-        <input id="d_city" placeholder="City" />
-        <select id="d_avail">
-          <option value="available">Available</option>
-          <option value="unavailable">Unavailable</option>
-        </select>
-        <button id="d_add" class="btn primary">Add Donor</button>
-      </div>
-      <div id="d_status" class="small-muted"></div>
-    </section>
-
-    <section class="card">
-      <h2>Donor List</h2>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <select id="filterBlood"><option value="">All Blood Groups</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select>
-        <input id="filterCity" placeholder="City filter" />
-        <button id="applyFilter" class="btn">Filter</button>
-        <button id="clearFilter" class="btn ghost">Clear</button>
-      </div>
-      <div id="donorList">No donors yet.</div>
-    </section>
-  </main>
-
-  <script src="app.js"></script>
-  <script>
-    document.getElementById('d_add').addEventListener('click', ()=>{
-      const donor = {
-        name: document.getElementById('d_name').value.trim(),
-        bloodGroup: document.getElementById('d_blood').value.trim(),
-        phone: document.getElementById('d_phone').value.trim(),
-        city: document.getElementById('d_city').value.trim(),
-        availability: document.getElementById('d_avail').value
-      };
-      const res = window.bdi.addDonor(donor);
-      document.getElementById('d_status').textContent = res.msg;
-      if(res.ok){ document.getElementById('d_name').value=''; document.getElementById('d_phone').value=''; document.getElementById('d_city').value=''; }
-      window.bdi.renderDonors();
-    });
-    document.getElementById('applyFilter').addEventListener('click', ()=>{
-      const b = document.getElementById('filterBlood').value; const c = document.getElementById('filterCity').value.trim();
-      window.bdi.renderDonors(b,c);
-    });
-    document.getElementById('clearFilter').addEventListener('click', ()=>{ document.getElementById('filterBlood').value=''; document.getElementById('filterCity').value=''; window.bdi.renderDonors(); });
-    window.addEventListener('load', ()=>{ window.bdi.renderDonors(); });
-  </script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Donors - BDI</title><link href="style.css" rel="stylesheet"></head><body>
+<nav class="nav"><div class="nav-left"><a class="brand" href="index.html">BDI</a></div><div class="nav-right"><a href="donors.html" class="active">Donors</a><a href="recipients.html">Recipients</a><a href="bloodbanks.html">Blood Banks</a></div></nav>
+<main class="container">
+<section class="card">
+<h2>Register Donor</h2>
+<div class="form-grid">
+<input id="d_name" placeholder="Full name" aria-label="Donor name"/>
+<select id="d_blood" aria-label="Donor blood group"><option value="">Select blood group</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select>
+<input id="d_phone" placeholder="Phone" aria-label="phone"/><input id="d_city" placeholder="City" aria-label="city"/>
+<select id="d_avail" aria-label="availability"><option value="available">Available</option><option value="unavailable">Unavailable</option></select>
+<button id="d_add" class="btn primary">Add Donor</button>
+</div>
+<div id="d_status" class="small-muted" aria-live="polite"></div>
+</section>
+<section class="card">
+<h2>Donor List</h2>
+<div class="controls" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+<select id="filterBlood"><option value="">All Blood Groups</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select>
+<input id="filterCity" placeholder="City filter"/><button id="applyFilter" class="btn">Filter</button><button id="clearFilter" class="btn ghost">Clear</button>
+</div>
+<div id="donorList">No donors yet.</div>
+</section>
+</main>
+<script src="app.js"></script>
+<script>
+(function(){
+  const b = window.bdi;
+  document.getElementById('d_add').addEventListener('click', ()=>{
+    const donor = { name: document.getElementById('d_name').value.trim(), bloodGroup: document.getElementById('d_blood').value.trim(), phone: document.getElementById('d_phone').value.trim(), city: document.getElementById('d_city').value.trim(), availability: document.getElementById('d_avail').value };
+    const res = b.addDonor(donor); document.getElementById('d_status').textContent = res.msg; if(res.ok){ document.getElementById('d_name').value=''; document.getElementById('d_phone').value=''; document.getElementById('d_city').value=''; } b.renderDonors(); b.toast(res.msg);
+  });
+  document.getElementById('applyFilter').addEventListener('click', ()=>{ b.renderDonors(document.getElementById('filterBlood').value, document.getElementById('filterCity').value.trim()); });
+  document.getElementById('clearFilter').addEventListener('click', ()=>{ document.getElementById('filterBlood').value=''; document.getElementById('filterCity').value=''; b.renderDonors(); });
+  window.addEventListener('load', ()=>{ b.renderDonors(); });
+})();
+</script>
+</body></html>

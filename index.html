@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BDI — Blood Donor Interface (Dashboard)</title>
+  <title>BDI — Blood Donor Interface</title>
   <link href="style.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
   <nav class="nav">
@@ -14,28 +15,29 @@
       <a href="donors.html">Donors</a>
       <a href="recipients.html">Recipients</a>
       <a href="bloodbanks.html">Blood Banks</a>
-      <a href="#" id="resetData">Reset Data</a>
+      <div class="dropdown">
+        <button class="btn ghost">Data Tools</button>
+        <div class="dropdown-content">
+          <a id="backupBtn">Create Backup</a>
+          <a id="restoreBtn">Restore Backup</a>
+          <a id="exportJSON">Export JSON</a>
+          <a id="importJSON">Import JSON</a>
+        </div>
+      </div>
     </div>
   </nav>
 
   <header class="hero">
     <div>
       <h1>BDI — Blood Donor Interface</h1>
-      <p class="lead">Visibility of blood availability across multiple banks. Manage donors, requests and inventories.</p>
+      <p class="lead">Visibility of blood availability across multiple banks. Safe backups — no destructive reset.</p>
     </div>
     <div class="hero-actions">
       <button id="addSample" class="btn">Add Sample Data</button>
-      <div class="dropdown">
-        <button id="exportBtn" class="btn ghost">Export</button>
-        <div class="dropdown-content">
-          <a id="exportJSON">Export JSON</a>
-          <a id="importJSON">Import JSON</a>
-        </div>
-      </div>
     </div>
   </header>
 
-  <main class="container">
+  <main class="container" id="main">
     <section class="card stats">
       <div class="stat">
         <div class="stat-num" id="totalDonors">0</div>
@@ -51,14 +53,23 @@
       </div>
       <div class="stat">
         <div class="stat-num" id="totalUnits">0</div>
-        <div class="stat-label">Total Units (All Banks)</div>
+        <div class="stat-label">Total Units</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="lastUpdate">—</div>
+        <div class="stat-label">Last Update</div>
       </div>
     </section>
 
-    <section class="card chart-card">
-      <h3>Aggregated Availability — Units by Group (All Banks)</h3>
+    <section class="card chart-card" aria-live="polite">
+      <h3>Aggregated Availability — Units by Group</h3>
       <canvas id="availabilityChart" aria-label="Blood availability chart" role="img"></canvas>
       <div class="chart-legend" id="chartLegend"></div>
+    </section>
+
+    <section class="card chart-card">
+      <h3>Top Blood Groups Needed (Open Requests)</h3>
+      <canvas id="neededChart" aria-label="Needed blood groups" role="img"></canvas>
     </section>
 
     <section class="card list-card">
@@ -69,20 +80,25 @@
 
   <input type="file" id="fileInput" style="display:none" accept="application/json" />
 
+  <div id="toast" class="toast" aria-live="assertive"></div>
+
   <script src="app.js"></script>
   <script>
-    document.getElementById('addSample').addEventListener('click', ()=>{ window.bdi.addSampleData(); window.bdi.renderAll(); });
-    document.getElementById('exportJSON').addEventListener('click', ()=>{ window.bdi.exportData(); });
-    document.getElementById('importJSON').addEventListener('click', ()=>{ document.getElementById('fileInput').click(); });
-    document.getElementById('fileInput').addEventListener('change', (e)=>{
-      const f = e.target.files[0];
-      if(!f) return;
-      const reader = new FileReader();
-      reader.onload = ()=>{ try{ const data = JSON.parse(reader.result); window.bdi.importData(data); alert('Imported'); window.bdi.renderAll(); }catch(err){ alert('Invalid JSON'); } };
-      reader.readAsText(f);
-    });
-    document.getElementById('resetData').addEventListener('click', ()=>{ if(confirm('Reset all data?')){ window.bdi.resetData(); window.bdi.renderAll(); alert('Reset done'); } });
-    window.addEventListener('load', ()=>{ window.bdi.renderAll(); });
+    (function(){
+      const b = window.bdi;
+      document.getElementById('addSample').addEventListener('click', ()=>{ b.addSampleData(); b.renderAll(); b.toast('Sample data added'); });
+      document.getElementById('exportJSON').addEventListener('click', ()=>{ b.exportData(); });
+      document.getElementById('importJSON').addEventListener('click', ()=>{ document.getElementById('fileInput').click(); });
+      document.getElementById('backupBtn').addEventListener('click', ()=>{ b.createBackup(); b.toast('Backup created'); });
+      document.getElementById('restoreBtn').addEventListener('click', ()=>{ b.showBackups(); });
+      document.getElementById('fileInput').addEventListener('change', (e)=>{
+        const f = e.target.files[0]; if(!f) return;
+        const reader = new FileReader();
+        reader.onload = ()=>{ try{ const data = JSON.parse(reader.result); if(confirm('Importing will merge data (no deletions). Continue?')){ b.createBackup(); b.importData(data); b.renderAll(); b.toast('Imported JSON'); } }catch(err){ b.toast('Invalid JSON file', true); } };
+        reader.readAsText(f);
+      });
+      window.addEventListener('load', ()=>{ b.renderAll(); if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); } });
+    })();
   </script>
 </body>
 </html>

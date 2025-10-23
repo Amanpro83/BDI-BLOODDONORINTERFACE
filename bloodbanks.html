@@ -1,89 +1,21 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BDI — Blood Banks</title>
-  <link href="style.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <nav class="nav">
-    <div class="nav-left"><a class="brand" href="index.html">BDI</a></div>
-    <div class="nav-right">
-      <a href="donors.html">Donors</a>
-      <a href="recipients.html">Recipients</a>
-      <a href="bloodbanks.html" class="active">Blood Banks</a>
-    </div>
-  </nav>
-
-  <main class="container">
-    <section class="card">
-      <h2>Add / Manage Banks</h2>
-      <div class="form-grid">
-        <input id="b_name" placeholder="Bank name (e.g. City Blood Bank)" />
-        <input id="b_city" placeholder="City" />
-        <button id="b_add" class="btn primary">Create Bank</button>
-      </div>
-      <div id="b_status" class="small-muted"></div>
-      <div style="margin-top:12px" id="banksList">No banks yet.</div>
-    </section>
-
-    <section class="card">
-      <h2>Selected Bank Inventory</h2>
-      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-        <select id="selectBank"><option value="">Select a bank to edit</option></select>
-        <button id="loadBank" class="btn">Load</button>
-      </div>
-
-      <div id="inventoryGrid" class="grid-inventory"></div>
-      <div style="margin-top:12px"><button id="saveInv" class="btn primary">Save Inventory</button></div>
-      <div id="inv_status" class="small-muted"></div>
-    </section>
-
-    <section class="card chart-card">
-      <h3>Inventory Chart — Selected Bank</h3>
-      <canvas id="bankChart"></canvas>
-    </section>
-  </main>
-
-  <script src="app.js"></script>
-  <script>
-    function refreshBankSelector(){ const sel=document.getElementById('selectBank'); sel.innerHTML='<option value="">Select a bank to edit</option>'; (window.bdi.getBanks()||[]).forEach(b=>{ const opt=document.createElement('option'); opt.value=b.id; opt.textContent=b.name + ' — ' + (b.city||''); sel.appendChild(opt); }); }
-    document.getElementById('b_add').addEventListener('click', ()=>{
-      const name=document.getElementById('b_name').value.trim(); const city=document.getElementById('b_city').value.trim();
-      const res = window.bdi.addBank({name,city}); document.getElementById('b_status').textContent = res.msg; if(res.ok){ document.getElementById('b_name').value=''; document.getElementById('b_city').value=''; }
-      refreshBankSelector(); window.bdi.renderBanks();
-    });
-    document.getElementById('loadBank').addEventListener('click', ()=>{
-      const id = document.getElementById('selectBank').value; if(!id){ alert('Select bank'); return; }
-      const bank = window.bdi.getBanks().find(b=>b.id===id); if(!bank) return;
-      // populate inventory grid
-      const grid = document.getElementById('inventoryGrid'); grid.innerHTML='';
-      const groups = ['A+','A-','B+','B-','O+','O-','AB+','AB-'];
-      groups.forEach(g=>{
-        const val = (bank.inventory && bank.inventory[g])? bank.inventory[g] : 0;
-        const wrap = document.createElement('div'); wrap.className='inv-row';
-        wrap.innerHTML = `<label class="inv-label">${g}<input class="inv-input" data-group="${g}" value="${val}" type="number" min="0"></label>`;
-        grid.appendChild(wrap);
-      });
-      document.getElementById('inv_status').textContent = 'Loaded bank: ' + bank.name;
-      // set current selected id
-      document.getElementById('saveInv').setAttribute('data-bank', id);
-      window.bdi.renderAll();
-    });
-
-    document.getElementById('saveInv').addEventListener('click', ()=>{
-      const bankId = document.getElementById('saveInv').getAttribute('data-bank');
-      if(!bankId){ alert('Load a bank first to save'); return; }
-      const inputs = document.querySelectorAll('.inv-input'); let inv = {};
-      inputs.forEach(inp=>{ const g = inp.getAttribute('data-group'); inv[g] = Math.max(0, parseInt(inp.value,10)||0); });
-      window.bdi.updateBankInventory(bankId, inv);
-      document.getElementById('inv_status').textContent = 'Saved inventory.';
-      window.bdi.renderAll();
-    });
-
-    window.addEventListener('load', ()=>{ refreshBankSelector(); window.bdi.renderAll(); });
-  </script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Blood Banks - BDI</title><link href="style.css" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/chart.js"></script></head><body>
+<nav class="nav"><div class="nav-left"><a class="brand" href="index.html">BDI</a></div><div class="nav-right"><a href="donors.html">Donors</a><a href="recipients.html">Recipients</a><a href="bloodbanks.html" class="active">Blood Banks</a></div></nav>
+<main class="container">
+<section class="card">
+<h2>Add / Manage Banks</h2>
+<div class="form-grid"><input id="b_name" placeholder="Bank name (e.g. City Blood Bank)"/><input id="b_city" placeholder="City"/><button id="b_add" class="btn primary">Create Bank</button></div>
+<div id="b_status" class="small-muted"></div>
+<div style="margin-top:12px" id="banksList">No banks yet.</div>
+</section>
+<section class="card">
+<h2>Selected Bank Inventory</h2>
+<div style="display:flex;gap:8px;margin-bottom:10px;align-items:center"><select id="selectBank"><option value="">Select a bank to edit</option></select><button id="loadBank" class="btn">Load</button><button id="bankAudit" class="btn ghost">Audit Log</button></div>
+<div id="inventoryGrid" class="grid-inventory" aria-live="polite"></div>
+<div style="margin-top:12px"><button id="saveInv" class="btn primary">Save Inventory</button></div>
+<div id="inv_status" class="small-muted"></div>
+</section>
+<section class="card chart-card"><h3>Inventory Chart — Selected Bank</h3><canvas id="bankChart"></canvas><div id="auditLog" class="small-muted" style="margin-top:10px;"></div></section>
+</main>
+<script src="app.js"></script>
+<script>(function(){const b = window.bdi;function refreshBankSelector(){ const sel=document.getElementById('selectBank'); sel.innerHTML='<option value="">Select a bank to edit</option>'; (b.getBanks()||[]).forEach(bank=>{ const opt=document.createElement('option'); opt.value=bank.id; opt.textContent = bank.name + ' — ' + (bank.city||''); sel.appendChild(opt); }); } document.getElementById('b_add').addEventListener('click', ()=>{ const name=document.getElementById('b_name').value.trim(); const city=document.getElementById('b_city').value.trim(); const res = b.addBank({name,city}); document.getElementById('b_status').textContent = res.msg; if(res.ok){ document.getElementById('b_name').value=''; document.getElementById('b_city').value=''; } refreshBankSelector(); b.renderBanks(); }); document.getElementById('loadBank').addEventListener('click', ()=>{ const id = document.getElementById('selectBank').value; if(!id){ alert('Select bank'); return; } const bank = b.getBanks().find(bb=>bb.id===id); if(!bank) return; const grid = document.getElementById('inventoryGrid'); grid.innerHTML=''; const groups = ['A+','A-','B+','B-','O+','O-','AB+','AB-']; groups.forEach(g=>{ const val = (bank.inventory && bank.inventory[g])? bank.inventory[g] : 0; const wrap = document.createElement('div'); wrap.className='inv-row'; wrap.innerHTML = `<label class="inv-label">${g} <input class="inv-input" data-group="${g}" value="${val}" type="number" min="0"></label>`; grid.appendChild(wrap); }); document.getElementById('inv_status').textContent = 'Loaded bank: ' + bank.name; document.getElementById('saveInv').setAttribute('data-bank', id); b.renderAll(); }); document.getElementById('saveInv').addEventListener('click', ()=>{ const bankId = document.getElementById('saveInv').getAttribute('data-bank'); if(!bankId){ alert('Load a bank first to save'); return; } const inputs = document.querySelectorAll('.inv-input'); let inv = {}; inputs.forEach(inp=>{ const g = inp.getAttribute('data-group'); inv[g] = Math.max(0, parseInt(inp.value,10)||0); }); b.updateBankInventory(bankId, inv); document.getElementById('inv_status').textContent = 'Saved inventory.'; b.toast('Inventory saved'); b.renderAll(); }); document.getElementById('bankAudit').addEventListener('click', ()=>{ const id=document.getElementById('selectBank').value; if(!id){ alert('Select bank'); return; } const logs = b.getAuditLog(id); document.getElementById('auditLog').textContent = logs.length? logs.map(l=>new Date(l.ts).toLocaleString()+': '+l.action+' '+l.details).join('\n') : 'No audit records.'; }); window.addEventListener('load', ()=>{ refreshBankSelector(); b.renderAll(); }); })();</script></body></html>
