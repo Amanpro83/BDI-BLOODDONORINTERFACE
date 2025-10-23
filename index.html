@@ -3,101 +3,110 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BDI — Blood Donor Interface</title>
+  <title>BDI — Blood Donor Interface (Refined)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="style.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="manifest" href="manifest.json">
 </head>
-<body>
-  <nav class="nav">
-    <div class="nav-left"><a class="brand" href="index.html">BDI</a></div>
-    <div class="nav-right">
-      <a href="donors.html">Donors</a>
-      <a href="recipients.html">Recipients</a>
-      <a href="bloodbanks.html">Blood Banks</a>
-      <div class="dropdown">
-        <button class="btn ghost">Data Tools</button>
-        <div class="dropdown-content">
-          <a id="backupBtn">Create Backup</a>
-          <a id="restoreBtn">Restore Backup</a>
-          <a id="exportJSON">Export JSON</a>
-          <a id="importJSON">Import JSON</a>
-        </div>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-white bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand text-danger fw-bold" href="index.html">BDI</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"><span class="navbar-toggler-icon"></span></button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="donors.html">Donors</a></li>
+          <li class="nav-item"><a class="nav-link" href="recipients.html">Recipients</a></li>
+          <li class="nav-item"><a class="nav-link" href="bloodbanks.html">Blood Banks</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="dataTools" data-bs-toggle="dropdown">Data Tools</a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" id="backupBtn">Create Backup</a></li>
+              <li><a class="dropdown-item" id="restoreBtn">Restore Backup</a></li>
+              <li><a class="dropdown-item" id="exportJSON">Export JSON</a></li>
+              <li><a class="dropdown-item" id="importJSON">Import JSON</a></li>
+            </ul>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
 
-  <header class="hero">
-    <div>
-      <h1>BDI — Blood Donor Interface</h1>
-      <p class="lead">Visibility of blood availability across multiple banks. Safe backups — no destructive reset.</p>
-    </div>
-    <div class="hero-actions">
-      <button id="addSample" class="btn">Add Sample Data</button>
+  <header class="py-4 mb-3 bg-white shadow-sm">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="h3 mb-0 text-danger">BDI — Blood Donor Interface</h1>
+        <p class="text-muted small mb-0">Refined UI with Bootstrap, FontAwesome and improved interactions.</p>
+      </div>
+      <div>
+        <button id="addSample" class="btn btn-outline-danger"><i class="fa-solid fa-database me-2"></i>Add Sample Data</button>
+      </div>
     </div>
   </header>
 
-  <main class="container" id="main">
-    <section class="card stats">
-      <div class="stat">
-        <div class="stat-num" id="totalDonors">0</div>
-        <div class="stat-label">Donors</div>
+  <main class="container mb-5" id="main">
+    <div class="row g-3">
+      <div class="col-12 col-md-8">
+        <div class="card p-3">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="mb-0">Aggregated Availability</h5>
+            <small id="lastUpdate" class="text-muted">—</small>
+          </div>
+          <canvas id="availabilityChart" height="120"></canvas>
+          <div id="chartLegend" class="mt-2"></div>
+        </div>
       </div>
-      <div class="stat">
-        <div class="stat-num" id="totalRequests">0</div>
-        <div class="stat-label">Open Requests</div>
+      <div class="col-12 col-md-4">
+        <div class="card p-3">
+          <h6 class="mb-2">Stats</h6>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">Donors <span id="totalDonors">0</span></li>
+            <li class="list-group-item d-flex justify-content-between">Open Requests <span id="totalRequests">0</span></li>
+            <li class="list-group-item d-flex justify-content-between">Banks <span id="totalBanks">0</span></li>
+            <li class="list-group-item d-flex justify-content-between">Total Units <span id="totalUnits">0</span></li>
+          </ul>
+        </div>
+        <div class="card p-3 mt-3">
+          <h6 class="mb-2">Top Needed</h6>
+          <canvas id="neededChart" height="120"></canvas>
+        </div>
       </div>
-      <div class="stat">
-        <div class="stat-num" id="totalBanks">0</div>
-        <div class="stat-label">Blood Banks</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" id="totalUnits">0</div>
-        <div class="stat-label">Total Units</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" id="lastUpdate">—</div>
-        <div class="stat-label">Last Update</div>
-      </div>
-    </section>
 
-    <section class="card chart-card" aria-live="polite">
-      <h3>Aggregated Availability — Units by Group</h3>
-      <canvas id="availabilityChart" aria-label="Blood availability chart" role="img"></canvas>
-      <div class="chart-legend" id="chartLegend"></div>
-    </section>
-
-    <section class="card chart-card">
-      <h3>Top Blood Groups Needed (Open Requests)</h3>
-      <canvas id="neededChart" aria-label="Needed blood groups" role="img"></canvas>
-    </section>
-
-    <section class="card list-card">
-      <h3>Recent Requests</h3>
-      <div id="recentList">No requests yet.</div>
-    </section>
+      <div class="col-12">
+        <div class="card p-3">
+          <h5 class="mb-3">Recent Requests</h5>
+          <div id="recentList">No requests yet.</div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <input type="file" id="fileInput" style="display:none" accept="application/json" />
+  <div id="toast" class="toast align-items-center text-white bg-dark border-0 position-fixed end-0 bottom-0 m-3 p-2" role="alert" aria-live="assertive" aria-atomic="true" style="display:none;"><div class="d-flex"><div class="toast-body" id="toastBody"></div><button type="button" class="btn-close btn-close-white ms-auto me-2" onclick="document.getElementById('toast').style.display='none'"></button></div></div>
 
-  <div id="toast" class="toast" aria-live="assertive"></div>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
   <script>
     (function(){
       const b = window.bdi;
-      document.getElementById('addSample').addEventListener('click', ()=>{ b.addSampleData(); b.renderAll(); b.toast('Sample data added'); });
+      document.getElementById('addSample').addEventListener('click', ()=>{ b.addSampleData(); b.renderAll(); showToast('Sample data added'); });
       document.getElementById('exportJSON').addEventListener('click', ()=>{ b.exportData(); });
       document.getElementById('importJSON').addEventListener('click', ()=>{ document.getElementById('fileInput').click(); });
-      document.getElementById('backupBtn').addEventListener('click', ()=>{ b.createBackup(); b.toast('Backup created'); });
+      document.getElementById('backupBtn').addEventListener('click', ()=>{ b.createBackup(); showToast('Backup created'); });
       document.getElementById('restoreBtn').addEventListener('click', ()=>{ b.showBackups(); });
       document.getElementById('fileInput').addEventListener('change', (e)=>{
         const f = e.target.files[0]; if(!f) return;
         const reader = new FileReader();
-        reader.onload = ()=>{ try{ const data = JSON.parse(reader.result); if(confirm('Importing will merge data (no deletions). Continue?')){ b.createBackup(); b.importData(data); b.renderAll(); b.toast('Imported JSON'); } }catch(err){ b.toast('Invalid JSON file', true); } };
+        reader.onload = ()=>{ try{ const data = JSON.parse(reader.result); if(confirm('Importing will merge data (no deletions). Continue?')){ b.createBackup(); b.importData(data); b.renderAll(); showToast('Imported JSON'); } }catch(err){ showToast('Invalid JSON file', true); } };
         reader.readAsText(f);
       });
-      window.addEventListener('load', ()=>{ b.renderAll(); if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); } });
+      function showToast(msg,isErr){ const t=document.getElementById('toast'); document.getElementById('toastBody').textContent=msg; t.style.display='block'; if(isErr) t.classList.remove('bg-dark'), t.classList.add('bg-danger'); setTimeout(()=>{ t.style.display='none'; t.classList.add('bg-dark'); t.classList.remove('bg-danger'); },3000); }
+      window.showToast = showToast;
+      window.addEventListener('load', ()=>{ b.renderAll(); });
     })();
   </script>
 </body>

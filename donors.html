@@ -1,38 +1,42 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Donors - BDI</title><link href="style.css" rel="stylesheet"></head><body>
-<nav class="nav"><div class="nav-left"><a class="brand" href="index.html">BDI</a></div><div class="nav-right"><a href="donors.html" class="active">Donors</a><a href="recipients.html">Recipients</a><a href="bloodbanks.html">Blood Banks</a></div></nav>
-<main class="container">
-<section class="card">
-<h2>Register Donor</h2>
-<div class="form-grid">
-<input id="d_name" placeholder="Full name" aria-label="Donor name"/>
-<select id="d_blood" aria-label="Donor blood group"><option value="">Select blood group</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select>
-<input id="d_phone" placeholder="Phone" aria-label="phone"/><input id="d_city" placeholder="City" aria-label="city"/>
-<select id="d_avail" aria-label="availability"><option value="available">Available</option><option value="unavailable">Unavailable</option></select>
-<button id="d_add" class="btn primary">Add Donor</button>
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Donors - BDI</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"><link href="style.css" rel="stylesheet"></head><body class="bg-light">
+<nav class="navbar navbar-white bg-white shadow-sm"><div class="container"><a class="navbar-brand text-danger fw-bold" href="index.html">BDI</a><div class="d-flex"><a class="nav-link" href="donors.html">Donors</a></div></div></nav>
+<main class="container my-4">
+<div class="row g-3">
+  <div class="col-12 col-md-5">
+    <div class="card p-3">
+      <h5>Register Donor</h5>
+      <div class="mb-2"><input id="d_name" placeholder="Full name" class="form-control"/></div>
+      <div class="mb-2"><select id="d_blood" class="form-select"><option value="">Select blood group</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+      <div class="mb-2"><input id="d_phone" placeholder="Phone" class="form-control"/></div>
+      <div class="mb-2"><input id="d_city" placeholder="City" class="form-control"/></div>
+      <div class="d-flex gap-2"><select id="d_avail" class="form-select w-50"><option value="available">Available</option><option value="unavailable">Unavailable</option></select><button id="d_add" class="btn btn-danger"><i class="fa-solid fa-user-plus me-2"></i>Add Donor</button></div>
+      <div id="d_status" class="small text-muted mt-2"></div>
+    </div>
+  </div>
+  <div class="col-12 col-md-7">
+    <div class="card p-3">
+      <h5>Donor List</h5>
+      <div class="d-flex mb-2 gap-2"><select id="filterBlood" class="form-select w-25"><option value="">All Blood Groups</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select><input id="filterCity" class="form-control" placeholder="City filter"/><button id="applyFilter" class="btn btn-outline-secondary">Filter</button><button id="clearFilter" class="btn btn-outline-danger">Clear</button></div>
+      <div id="donorList">No donors yet.</div>
+    </div>
+  </div>
 </div>
-<div id="d_status" class="small-muted" aria-live="polite"></div>
-</section>
-<section class="card">
-<h2>Donor List</h2>
-<div class="controls" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-<select id="filterBlood"><option value="">All Blood Groups</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select>
-<input id="filterCity" placeholder="City filter"/><button id="applyFilter" class="btn">Filter</button><button id="clearFilter" class="btn ghost">Clear</button>
-</div>
-<div id="donorList">No donors yet.</div>
-</section>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script src="app.js"></script>
 <script>
 (function(){
   const b = window.bdi;
   document.getElementById('d_add').addEventListener('click', ()=>{
     const donor = { name: document.getElementById('d_name').value.trim(), bloodGroup: document.getElementById('d_blood').value.trim(), phone: document.getElementById('d_phone').value.trim(), city: document.getElementById('d_city').value.trim(), availability: document.getElementById('d_avail').value };
-    const res = b.addDonor(donor); document.getElementById('d_status').textContent = res.msg; if(res.ok){ document.getElementById('d_name').value=''; document.getElementById('d_phone').value=''; document.getElementById('d_city').value=''; } b.renderDonors(); b.toast(res.msg);
+    const res = b.addDonor(donor); document.getElementById('d_status').textContent = res.msg; if(res.ok){ document.getElementById('d_name').value=''; document.getElementById('d_phone').value=''; document.getElementById('d_city').value=''; }
+    b.renderAll();
+    window.showToast(res.msg);
   });
   document.getElementById('applyFilter').addEventListener('click', ()=>{ b.renderDonors(document.getElementById('filterBlood').value, document.getElementById('filterCity').value.trim()); });
-  document.getElementById('clearFilter').addEventListener('click', ()=>{ document.getElementById('filterBlood').value=''; document.getElementById('filterCity').value=''; b.renderDonors(); });
-  window.addEventListener('load', ()=>{ b.renderDonors(); });
+  document.getElementById('clearFilter').addEventListener('click', ()=>{ document.getElementById('filterBlood').value=''; document.getElementById('filterCity').value=''; b.renderAll(); });
+  window.addEventListener('load', ()=>{ b.renderAll(); });
 })();
 </script>
 </body></html>
